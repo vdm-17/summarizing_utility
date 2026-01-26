@@ -1,4 +1,3 @@
-from dotenv import load_dotenv
 from os import getenv
 from app.utils import get_config
 from app.params import WorkMode, DetailsMode
@@ -8,17 +7,6 @@ from agents.model_settings import Reasoning
 from agents.run import RunConfig
 from openai import OpenAI
 import asyncio
-
-load_dotenv()
-
-APP_ENV = getenv('APP_ENV')
-OPENAI_API_KEY = getenv('OPENAI_API_KEY')
-
-config = get_config()
-
-SUMMARIZING_AGENT_OPENAI_MODEL = config['DEFAULT']['SUMMARIZING_AGENT_OPENAI_MODEL']
-SUMMARIZING_AGENT_REASONING_EFFORT = config['DEFAULT']['SUMMARIZING_AGENT_REASONING_EFFORT']
-SUMMARIZING_AGENT_VERBOSITY = config['DEFAULT']['SUMMARIZING_AGENT_VERBOSITY']
 
 SUMMARIZING_AGENT_INSTRUCTIONS = (
     'Ты бот, составляющий конспекты. Твоя задача - формулировать и составлять '
@@ -122,17 +110,25 @@ def get_summarizing_agent_output_type(work_mode: WorkMode):
 
 class SummarizingAgent(Agent):
     def __init__(self, name: str, instructions: str, output_type: SummarizingAgentOutput):
-        openai_client = OpenAI(api_key=OPENAI_API_KEY)
+        config = get_config()
+
+        openai_model = config['DEFAULT']['SUMMARIZING_AGENT_OPENAI_MODEL']
+        reasoining_effort = config['DEFAULT']['SUMMARIZING_AGENT_REASONING_EFFORT']
+        verbosity = config['DEFAULT']['SUMMARIZING_AGENT_VERBOSITY']
+        
+        api_key = getenv('OPENAI_API_KEY')
+
+        openai_client = OpenAI(api_key=api_key)
         openai_vector_store = openai_client.vector_stores.create()
 
         super().__init__(
             name=name, 
             instructions=instructions,
             tools=[FileSearchTool(vector_store_ids=[openai_vector_store.id])],
-            model=SUMMARIZING_AGENT_OPENAI_MODEL,
+            model=openai_model,
             model_settings=ModelSettings(
-                reasoning=Reasoning(effort=SUMMARIZING_AGENT_REASONING_EFFORT),
-                verbosity=SUMMARIZING_AGENT_VERBOSITY,
+                reasoning=Reasoning(effort=reasoining_effort),
+                verbosity=verbosity,
                 store=False
             ),
             output_type=output_type
@@ -165,7 +161,9 @@ class SummarizingAgent(Agent):
             }
         ]
 
-        if APP_ENV == 'development':
+        app_env = getenv('APP_ENV')
+
+        if app_env == 'development':
             tracing_disabled = False
         else:
             tracing_disabled = True

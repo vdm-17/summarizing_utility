@@ -1,3 +1,4 @@
+from dotenv import load_dotenv
 from app.params import get_work_mode, get_details_mode
 from app.summarizing_agent import (
     get_summarizing_agent_instructions, get_summarizing_agent_output_type, SummarizingAgent
@@ -6,6 +7,8 @@ from app.utils import get_inout_files_pathes, save_content
 
 
 def main():
+    load_dotenv()
+
     work_mode = get_work_mode()
     details_mode = get_details_mode()
 
