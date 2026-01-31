@@ -25,7 +25,8 @@ def main():
     
     save_content(output_file_path, summary)
 
-    print(f'\nФайл с конспектом успешно сохранен по пути {output_file_path}')
+    print()
+    print(f'Файл с конспектом успешно сохранен по пути {output_file_path}')
 
 
 if __name__ == '__main__':
